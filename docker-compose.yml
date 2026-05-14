@@ -1,0 +1,39 @@
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.18.0.0/16
+
+services:
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    networks:
+      default:
+        ipv4_address: 172.18.0.3
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "8080:80/tcp" # Access pihole admin at http://172.18.0.3:8080/admin
+    environment:
+      TZ: 'America/Toronto'
+      WEBPASSWORD: ${PIHOLE_PWD}
+    volumes:
+      - './pihole/etc-pihole:/etc/pihole'
+      - './pihole/etc-dnsmasq.d:/etc/dnsmasq.d'
+    restart: unless-stopped
+
+  xray:
+    image: teddysun/xray:latest
+    container_name: xray-vless
+    volumes:
+      - ./xray:/etc/xray
+    restart: unless-stopped
+    depends_on:
+      - pihole
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    command: tunnel run --token ${TUNNEL_TOKEN}

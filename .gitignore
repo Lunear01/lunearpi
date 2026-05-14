@@ -1,0 +1,6 @@
+# Ignore Tokens
+.env
+xray/config.json
+pihole/
+.env
+xray/config.json
