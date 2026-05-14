@@ -32,3 +32,14 @@ services:
     container_name: cloudflared
     restart: unless-stopped
     command: tunnel run --protocol quic --token ${TUNNEL_TOKEN}
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    container_name: uptime-kuma
+    restart: unless-stopped
+    volumes:
+      - ./uptime-kuma:/app/data
+    ports:
+      - "3001:3001/tcp"
+    depends_on:
+      - pihole
