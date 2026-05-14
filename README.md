@@ -2,15 +2,15 @@
 
 A high-performance, containerized networking stack designed for secure, ad-filtered browsing. This project leverages **Xray (VLESS)** for proxied traffic, **Pi-hole** for network-wide DNS sinkholing, and **Cloudflare Tunnels** to expose the service without opening local firewall ports.
 
-## 🏗 Architecture
+## Architecture
 This stack is built with modular engineering principles, separating secrets from logic and utilizing a dedicated Docker network for internal DNS routing:
 
-* [cite_start]**Xray (VLESS over WS):** Handles encrypted inbound proxy traffic[cite: 1, 2].
-* [cite_start]**Pi-hole:** Acts as the primary DNS server for Xray, stripping ads and trackers at the DNS level[cite: 1].
-* [cite_start]**Cloudflare Tunnel:** Creates a secure outbound-only connection to the Cloudflare edge, bypassing the need for Port Forwarding[cite: 1].
-* [cite_start]**Docker Networking:** Uses a static subnet (`172.18.0.0/16`) to ensure predictable communication between the Xray and Pi-hole containers[cite: 1].
+* **Xray (VLESS over WS):** Handles encrypted inbound proxy traffic
+* **Pi-hole:** Acts as the primary DNS server for Xray, stripping ads and trackers at the DNS level.
+* **Cloudflare Tunnel:** Creates a secure outbound-only connection to the Cloudflare edge, bypassing the need for Port Forwarding.
+* **Docker Networking:** Uses a static subnet (`172.18.0.0/16`) to ensure predictable communication between the Xray and Pi-hole containers.
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 * A Raspberry Pi (running Linux).
@@ -48,7 +48,7 @@ This stack is built with modular engineering principles, separating secrets from
 ## 🛠 Configuration Details
 
 ### DNS Integration
-[cite_start]The Xray configuration is set to use the Pi-hole container at `172.18.0.3` as its primary DNS resolver[cite: 1, 2]. [cite_start]This ensures that all traffic tunneled through the proxy is automatically filtered for ads and telemetry before reaching the destination[cite: 1, 2].
+The Xray configuration is set to use the Pi-hole container at `172.18.0.3` as its primary DNS resolver. This ensures that all traffic tunneled through the proxy is automatically filtered for ads and telemetry before reaching the destination.
 
 ### Performance Optimizations
 For reduced latency and faster handshakes, ensure the following are enabled in your Cloudflare dashboard:
@@ -56,12 +56,7 @@ For reduced latency and faster handshakes, ensure the following are enabled in y
 * **0-RTT Connection Resumption**
 * **TLS 1.3** (Minimum version)
 
-## 🔒 Security
-* [cite_start]**Zero Open Ports:** The Cloudflare tunnel handles all ingress traffic; no port forwarding is required on your router[cite: 1].
-* [cite_start]**Inbound Protection:** Sniffing is enabled in Xray to correctly identify and route HTTP and TLS traffic[cite: 3].
+## Security
+* **Zero Open Ports:** The Cloudflare tunnel handles all ingress traffic; no port forwarding is required on your router.
+* **Inbound Protection:** Sniffing is enabled in Xray to correctly identify and route HTTP and TLS traffic.
 * **Secret Management:** All sensitive tokens, UUIDs, and passwords are kept in local configuration files or `.env` files and are excluded from source control via `.gitignore`.
-
----
-
-**Developed by Iker Huang**
-*Software Developer & Computer Science Specialist*
