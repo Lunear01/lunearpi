@@ -31,4 +31,4 @@ services:
     image: cloudflare/cloudflared:latest
     container_name: cloudflared
     restart: unless-stopped
-    command: tunnel run --token ${TUNNEL_TOKEN}
+    command: tunnel run --protocol quic --token ${TUNNEL_TOKEN}
