@@ -45,7 +45,7 @@ This stack is built with modular engineering principles, separating secrets from
     docker-compose up -d
     ```
 
-## 🛠 Configuration Details
+## Configuration Details
 
 ### DNS Integration
 The Xray configuration is set to use the Pi-hole container at `172.18.0.3` as its primary DNS resolver. This ensures that all traffic tunneled through the proxy is automatically filtered for ads and telemetry before reaching the destination.
