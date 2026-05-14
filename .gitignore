@@ -2,5 +2,4 @@
 .env
 xray/config.json
 pihole/
-.env
-xray/config.json
+uptime-kuma/
