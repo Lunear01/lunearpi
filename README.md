@@ -1,19 +1,20 @@
 # Raspberry Pi Proxy & Ad-Blocking Stack
 
-A high-performance, containerized networking stack designed for secure, ad-filtered browsing. This project leverages **Xray (VLESS)** for proxied traffic, **Pi-hole** for network-wide DNS sinkholing, and **Cloudflare Tunnels** to expose the service without opening local firewall ports.
+A high-performance, containerized networking stack designed for secure, ad-filtered browsing. This project leverages **Xray (VLESS)** for proxied traffic, **Pi-hole** for network-wide DNS sinkholing, and **Cloudflare Tunnels** to expose the service without opening local firewall ports. 
 
 ## Architecture
-This stack is built with modular engineering principles, separating secrets from logic and utilizing a dedicated Docker network for internal DNS routing:
+This stack is built with modular engineering principles, separating secrets from logic and utilizing highly optimized network routing for zero-latency resolution:
 
-* **Xray (VLESS over WS):** Handles encrypted inbound proxy traffic
-* **Pi-hole:** Acts as the primary DNS server for Xray, stripping ads and trackers at the DNS level.
+* **Xray (VLESS over WS):** Handles encrypted inbound proxy traffic with SNI sniffing enabled to route internal DNS queries efficiently.
+* **Pi-hole:** Acts as the primary DNS server for Xray, stripping ads and trackers at the DNS level. 
 * **Cloudflare Tunnel:** Creates a secure outbound-only connection to the Cloudflare edge, bypassing the need for Port Forwarding.
-* **Docker Networking:** Uses a static subnet (`172.18.0.0/16`) to ensure predictable communication between the Xray and Pi-hole containers.
+* **Zero-Latency Host Networking:** Pi-hole is deployed in `network_mode: "host"`, bypassing the Docker Bridge NAT entirely. This binds Pi-hole directly to the Pi's physical IP, dropping DNS resolution latency to near 0ms.
+* **Resource Management:** All containers implement strict JSON log rotation (max 30MB per service) to prevent SD card wear and storage bloat.
 
 ## Getting Started
 
 ### Prerequisites
-* A Raspberry Pi (running Linux).
+* A Raspberry Pi (running Linux) with a configured Static IP.
 * **Docker** and **Docker Compose** installed.
 * A domain managed by **Cloudflare**.
 
@@ -37,26 +38,22 @@ This stack is built with modular engineering principles, separating secrets from
     ```bash
     cp xray/config.json.example xray/config.json
     ```
-    * **Generate a UUID:** `cat /proc/sys/kernel/random/uuid`[cite: 2].
-    * Edit `xray/config.json` and replace `YOUR_UUID` and `YOUR_PATH` with your specific values[cite: 2, 3].
+    * **Generate a UUID:** `cat /proc/sys/kernel/random/uuid`
+    * Edit `xray/config.json` and replace `YOUR_UUID` and `YOUR_PATH` with your specific values.
 
 4.  **Deploy the Stack:**
     ```bash
-    docker-compose up -d
+    docker-compose up -d --remove-orphans
     ```
 
 ## Configuration Details
 
 ### DNS Integration
-The Xray configuration is set to use the Pi-hole container at `172.18.0.3` as its primary DNS resolver. This ensures that all traffic tunneled through the proxy is automatically filtered for ads and telemetry before reaching the destination.
+Due to the Host-Mode architecture, Xray and other bridged containers (like Uptime Kuma) are configured via `docker-compose.yml` to use the Raspberry Pi's physical IP address (e.g., `192.168.31.88`) as their primary DNS resolver. This ensures that all traffic tunneled through the proxy is automatically filtered for ads and telemetry before reaching the destination, without the overhead of Docker's internal network.
 
-### Performance Optimizations
-For reduced latency and faster handshakes, ensure the following are enabled in your Cloudflare dashboard:
-* **HTTP/3 (QUIC)**
-* **0-RTT Connection Resumption**
-* **TLS 1.3** (Minimum version)
-
-## Security
-* **Zero Open Ports:** The Cloudflare tunnel handles all ingress traffic; no port forwarding is required on your router.
-* **Inbound Protection:** Sniffing is enabled in Xray to correctly identify and route HTTP and TLS traffic.
-* **Secret Management:** All sensitive tokens, UUIDs, and passwords are kept in local configuration files or `.env` files and are excluded from source control via `.gitignore`.
+### Automated Maintenance
+To maximize the lifespan of the Raspberry Pi's SD card, this stack includes a host-level cleanup script (`maintenance.sh`). 
+* **Capabilities:** Prunes dangling Docker images, truncates container logs without breaking file handles, cleans the `apt` cache, and vacuums system `journalctl` logs.
+* **Automation:** Recommended to be run weekly via a root cron job:
+  ```bash
+  0 0 * * 0 /path/to/maintenance.sh >> /path/to/cleanup.log 2>&1
