@@ -6,17 +6,20 @@ services:
   pihole:
     container_name: pihole
     image: pihole/pihole:latest
-    ports:
-      - "53:53/tcp"
-      - "53:53/udp"
-      - "8080:80/tcp" # Access pihole admin at http://172.18.0.3:8080/admin
+    network_mode: "host" #Uses host's ip 192.168.31.88
     environment:
       TZ: 'America/Toronto'
       WEBPASSWORD: ${PIHOLE_PWD}
+      FTLCONF_REPLY_ADDR4: 192.168.31.88
     volumes:
       - './pihole/etc-pihole:/etc/pihole'
       - './pihole/etc-dnsmasq.d:/etc/dnsmasq.d'
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   xray:
     image: teddysun/xray:latest
@@ -24,8 +27,13 @@ services:
     volumes:
       - ./xray:/etc/xray
     restart: unless-stopped
-    depends_on:
-      - pihole
+    dns:
+      - 192.168.31.88 # Host IP Address
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   tunnel:
     image: cloudflare/cloudflared:latest
@@ -41,32 +49,10 @@ services:
       - ./uptime-kuma:/app/data
     ports:
       - "3001:3001/tcp"
-    depends_on:
-      - pihole
-
-  netdata:
-    image: netdata/netdata:stable
-    container_name: netdata
-    restart: unless-stopped
-    cap_add:
-      - SYS_PTRACE
-      - NET_ADMIN
-    security_opt:
-      - apparmor:unconfined
-    volumes:
-      - netdataconfig:/etc/netdata
-      - netdatalib:/var/lib/netdata
-      - netdatacache:/var/cache/netdata
-      - /etc/passwd:/etc/passwd:ro
-      - /etc/group:/etc/group:ro
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /etc/os-release:/host/etc/os-release:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    environment:
-      - NETDATA_HOSTNAME=lunearpi
-
-volumes:
-  netdataconfig:
-  netdatalib:
-  netdatacache:
+    dns:
+      - 192.168.31.88 # Host IP Address 
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
