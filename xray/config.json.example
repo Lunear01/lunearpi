@@ -4,7 +4,7 @@
   },
   "dns": {
     "servers": [
-      "172.18.0.3",
+      "192.168.31.88",
       "8.8.8.8",
       "1.1.1.1"
     ],
@@ -54,6 +54,11 @@
   "routing": {
     "domainStrategy": "IPIfNonMatch",
     "rules": [
+      {
+        "type": "field",
+        "inboundTag": ["dns-in"],
+        "outboundTag": "dns-out"
+      },
       {
         "type": "field",
         "port": 53,
