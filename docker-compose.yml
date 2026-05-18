@@ -11,7 +11,6 @@ services:
       TZ: 'America/Toronto'
       WEBPASSWORD: ${PIHOLE_PWD}
       FTLCONF_REPLY_ADDR4: 192.168.31.88
-      FTLCONF_RATE_LIMIT: 0/0
     volumes:
       - './pihole/etc-pihole:/etc/pihole'
       - './pihole/etc-dnsmasq.d:/etc/dnsmasq.d'
